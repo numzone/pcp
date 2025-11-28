@@ -1278,10 +1278,14 @@ eval_expr(__pmContext *ctxp, node_t *np, struct timespec *stamp, int numpmid,
 				np->data.info->ivlist[i].value.d = pick->data.info->ivlist[0].value.d;
 			    break;
 			case PM_TYPE_STRING:
-			    if (i < pick->data.info->numval)
+			    if (i < pick->data.info->numval) {
 				np->data.info->ivlist[i].value.cp = pick->data.info->ivlist[i].value.cp;
-			    else
+				np->data.info->ivlist[i].vlen = pick->data.info->ivlist[i].vlen;
+			    }
+			    else {
 				np->data.info->ivlist[i].value.cp = pick->data.info->ivlist[0].value.cp;
+				np->data.info->ivlist[i].vlen = pick->data.info->ivlist[0].vlen;
+			    }
 			    break;
 			default:
 			    if (pmDebugOptions.derive) {
@@ -2161,7 +2165,7 @@ __dmpostvalueset(__pmContext *ctxp, struct timespec *stamp, int vnumpmid,
 		    }
 		    vp->vlen = need;
 		    vp->vtype = PM_TYPE_DOUBLE;
-		    memcpy((void *)vp->vbuf, (void *)&cp->mlist[m].expr->data.info->ivlist[i].value.f, sizeof(double));
+		    memcpy((void *)vp->vbuf, (void *)&cp->mlist[m].expr->data.info->ivlist[i].value.d, sizeof(double));
 		    newvset[j]->vlist[i].value.pval = vp;
 		    break;
 
