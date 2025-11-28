@@ -731,6 +731,8 @@ check:
 			if (icp->v_next.pval != NULL)
 			    __pmUnpinPDUBuf((void *)icp->v_next.pval);
 			icp->v_next.pval = icp->v_prior.pval;
+			if (icp->v_next.pval != NULL)
+			    __pmPinPDUBuf((void *)icp->v_next.pval);
 		    }
 		}
 		icp->t_prior = t_this;
@@ -770,6 +772,8 @@ check:
 			if (icp->v_prior.pval != NULL)
 			    __pmUnpinPDUBuf((void *)icp->v_prior.pval);
 			icp->v_prior.pval = icp->v_next.pval;
+			if (icp->v_prior.pval != NULL)
+			    __pmPinPDUBuf((void *)icp->v_prior.pval);
 		    }
 		}
 		icp->t_next = t_this;
