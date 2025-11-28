@@ -1,0 +1,42 @@
+From: GitHub Copilot
+Subject: Fix double-free in cache_read: add missing PDU buffer pin during value shuffle
+
+In update_bounds() in interp.c, when shuffling values between v_prior 
+and v_next, the code was copying pointers without pinning the destination.
+This caused the PDU buffer's reference count to be incorrect, leading to
+premature freeing and subsequent double-free crashes when cached results
+were evicted.
+
+The fix adds __pmPinPDUBuf() calls after copying pointers in the shuffle
+operations to maintain correct reference counts.
+
+---
+ src/libpcp/src/interp.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/libpcp/src/interp.c b/src/libpcp/src/interp.c
+index e78a282..0ea89ff 100644
+--- a/src/libpcp/src/interp.c
++++ b/src/libpcp/src/interp.c
+@@ -731,6 +731,8 @@ check:
+ 		    else {
+ 			if (icp->v_next.pval != NULL)
+ 			    __pmUnpinPDUBuf((void *)icp->v_next.pval);
+ 			icp->v_next.pval = icp->v_prior.pval;
++			if (icp->v_next.pval != NULL)
++			    __pmPinPDUBuf((void *)icp->v_next.pval);
+ 		    }
+ 		}
+ 		icp->t_prior = t_this;
+@@ -770,6 +772,8 @@ check:
+ 		    else {
+ 			if (icp->v_prior.pval != NULL)
+ 			    __pmUnpinPDUBuf((void *)icp->v_prior.pval);
+ 			icp->v_prior.pval = icp->v_next.pval;
++			if (icp->v_prior.pval != NULL)
++			    __pmPinPDUBuf((void *)icp->v_prior.pval);
+ 		    }
+ 		}
+ 		icp->t_next = t_this;
+-- 
+2.39.0
